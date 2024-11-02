@@ -259,7 +259,7 @@ class ObjectSerializer
      */
     public static function deserialize($data, $class, $httpHeaders = null)
     {
-        if (null === $data) {
+        if (null === $data || '' === $data) {
             return null;
         }
 
