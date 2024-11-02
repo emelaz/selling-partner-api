@@ -41,5 +41,10 @@
     "scripts": {
         "test": "vendor/bin/phpunit",
         "lint": "vendor/bin/php-cs-fixer fix"
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
     }
 }
