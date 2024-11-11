@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Variables à personnaliser
-MAIN_BRANCH="main"  # Branche principale, change si nécessaire
 UPSTREAM_URL="https://github.com/jlevers/selling-partner-api.git"  # URL du dépôt original
+BRANCH_TO_SYNC="main"  # Branche principale locale (à garder pour les opérations de fusion)
 
 # Aller dans le répertoire de ton dépôt local
 #cd /chemin/vers/ton/fork || exit
@@ -14,24 +14,24 @@ if ! git remote | grep -q "upstream"; then
 fi
 
 # Récupérer les dernières modifications depuis le dépôt original
-git fetch upstream
+git fetch upstream --tags
 
-# Assurer que nous sommes sur la branche principale
-git checkout "$MAIN_BRANCH"
+# Trouver le dernier tag de la version 5.x
+LATEST_VERSION=$(git ls-remote --tags upstream | grep -o 'refs/tags/v5\.[0-9]*' | sort -V | tail -n1 | sed 's/refs\/tags\///')
 
-# Vérifier la dernière version dans le dépôt original
-LATEST_VERSION=$(git ls-remote --tags upstream | grep -o 'refs/tags/v[0-9.]*' | sort -V | tail -n1 | sed 's/refs\/tags\///')
-
-# Si une version a été trouvée, fusionner cette version
+# Vérifier si un tag correspondant a été trouvé
 if [ -n "$LATEST_VERSION" ]; then
-    echo "Dernière version trouvée : $LATEST_VERSION"
-    # Fusionner les modifications de la version
-    git merge "upstream/$MAIN_BRANCH" -m "Merge changes from upstream $LATEST_VERSION"
+    echo "Dernière version trouvée pour la version 5.x : $LATEST_VERSION"
+
+    # Assurer que nous sommes sur la branche locale pour fusionner
+    git checkout "$BRANCH_TO_SYNC"
+
+    # Fusionner les modifications du tag spécifique dans la branche locale
+    git merge "upstream/$LATEST_VERSION" -m "Merge changes from upstream $LATEST_VERSION"
+
+    # Pousser les modifications sur le fork
+    git push origin "$BRANCH_TO_SYNC"
+    echo "Votre fork est maintenant synchronisé avec la dernière version $LATEST_VERSION de la version 5.x du dépôt original."
 else
-    echo "Aucune version trouvée dans le dépôt original."
+    echo "Erreur : Aucun tag correspondant à la version 5.x trouvé dans le dépôt original."
 fi
-
-# Pousser les modifications sur le fork
-git push origin "$MAIN_BRANCH"
-
-echo "Votre fork est maintenant synchronisé avec la dernière version $LATEST_VERSION du dépôt original."
